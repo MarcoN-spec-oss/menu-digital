@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Nuestro menú{% endblock %}
+
+{% block content %}
+<div class="mb-4 d-flex flex-wrap gap-2">
+  <a class="btn btn-sm {% if not current_category %}btn-dark{% else %}btn-outline-dark{% endif %}"
+     href="{% url 'menu:list' %}{% if query %}?q={{ query|urlencode }}{% endif %}">Todo</a>
+  {% for c in categories %}
+    <a class="btn btn-sm {% if current_category == c.slug %}btn-dark{% else %}btn-outline-dark{% endif %}"
+       href="?categoria={{ c.slug }}{% if query %}&q={{ query|urlencode }}{% endif %}">{{ c.name }}</a>
+  {% endfor %}
+</div>
+
+{% if query %}
+  <p class="text-muted">Resultados para «{{ query }}»: {{ dishes|length }}</p>
+{% endif %}
+
+{% regroup dishes by category as groups %}
+{% for group in groups %}
+  <h2 class="h4 mt-4 mb-3">{{ group.grouper.name }}</h2>
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+    {% for dish in group.list %}
+      <div class="col">
+        <div class="card h-100 shadow-sm">
+          {% if dish.image %}
+            <img src="{{ dish.image.url }}" class="card-img-top dish-img" alt="{{ dish.name }}">
+          {% else %}
+            <div class="dish-img dish-placeholder d-flex align-items-center justify-content-center">🍽️</div>
+          {% endif %}
+          <div class="card-body d-flex flex-column">
+            <h3 class="h5 card-title">{{ dish.name }}</h3>
+            <p class="card-text text-muted small flex-grow-1">{{ dish.description }}</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <strong>S/ {{ dish.price }}</strong>
+              <form method="post" action="{% url 'orders:add' dish.id %}" class="js-add-cart">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="btn btn-sm btn-dark">Añadir al carrito</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% empty %}
+  <div class="alert alert-secondary">No se encontraron platillos.</div>
+{% endfor %}
+{% endblock %}

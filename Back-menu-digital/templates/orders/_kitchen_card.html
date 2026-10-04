@@ -1,0 +1,31 @@
+<div class="card mb-3 shadow-sm">
+  <div class="card-header d-flex justify-content-between">
+    <strong>Mesa {{ order.table_number }} · Pedido #{{ order.pk }}</strong>
+    <span class="text-muted small">hace {{ order.created_at|timesince }}</span>
+  </div>
+
+  <ul class="list-group list-group-flush">
+    {% if order.customer_name %}
+      <li class="list-group-item small text-muted">Cliente: {{ order.customer_name }}</li>
+    {% endif %}
+    {% for item in order.items.all %}
+      <li class="list-group-item"><strong>{{ item.quantity }}×</strong> {{ item.dish_name }}</li>
+    {% endfor %}
+    {% if order.notes %}
+      <li class="list-group-item text-danger small">📝 {{ order.notes }}</li>
+    {% endif %}
+  </ul>
+
+  <div class="card-footer">
+    <form method="post" action="{% url 'orders:set_status' order.pk %}" class="d-flex gap-2">
+      {% csrf_token %}
+      {% if order.status == 'PENDING' %}
+        <button name="status" value="PREPARING" class="btn btn-sm btn-primary">Empezar a preparar</button>
+      {% else %}
+        <button name="status" value="SERVED" class="btn btn-sm btn-success">Marcar servido</button>
+      {% endif %}
+      <button name="status" value="CANCELLED" class="btn btn-sm btn-outline-danger ms-auto"
+              onclick="return confirm('¿Cancelar este pedido?')">Cancelar</button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Reservar mesa{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <h1 class="h3 mb-4">Reservar una mesa</h1>
+    <form method="post" class="form-wrap">
+      {% csrf_token %}
+      {{ form.as_div }}
+      <button type="submit" class="btn btn-dark w-100">Enviar reserva</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

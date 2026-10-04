@@ -1,0 +1,14 @@
+.dish-img { height: 180px; width: 100%; object-fit: cover; }
+.dish-placeholder { background: #f1f3f5; font-size: 3rem; }
+
+/* Estilo para formularios de Django renderizados con {{ form.as_div }} */
+.form-wrap > div { margin-bottom: 1rem; }
+.form-wrap label { display: block; font-weight: 600; margin-bottom: .25rem; }
+.form-wrap input:not([type=checkbox]):not([type=radio]),
+.form-wrap textarea,
+.form-wrap select {
+  display: block; width: 100%; padding: .5rem .75rem;
+  border: 1px solid #ced4da; border-radius: .375rem;
+}
+.form-wrap .errorlist { color: #dc3545; list-style: none; padding: 0; margin: 0 0 .25rem; }
+.form-wrap .helptext { color: #6c757d; font-size: .85rem; }

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Gestión de reservas{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">Gestión de reservas</h1>
+
+<div class="mb-3 d-flex flex-wrap gap-2">
+  <a class="btn btn-sm {% if not current_status %}btn-dark{% else %}btn-outline-dark{% endif %}" href="{% url 'reservations:manage' %}">Todas</a>
+  {% for value, label in statuses %}
+    <a class="btn btn-sm {% if current_status == value %}btn-dark{% else %}btn-outline-dark{% endif %}" href="?estado={{ value }}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+<div class="table-responsive">
+  <table class="table align-middle bg-white">
+    <thead>
+      <tr><th>Cliente</th><th>Teléfono</th><th>Fecha</th><th>Hora</th><th>Pers.</th><th>Notas</th><th>Estado</th><th>Cambiar a</th></tr>
+    </thead>
+    <tbody>
+      {% for r in reservations %}
+        <tr>
+          <td>{{ r.full_name }}</td>
+          <td>{{ r.phone }}</td>
+          <td>{{ r.date|date:"d/m/Y" }}</td>
+          <td>{{ r.time|time:"H:i" }}</td>
+          <td>{{ r.guests }}</td>
+          <td class="small">{{ r.special_notes|default:"—" }}</td>
+          <td>
+            <span class="badge {% if r.status == 'CONFIRMED' %}text-bg-success{% elif r.status == 'CANCELLED' %}text-bg-danger{% else %}text-bg-warning{% endif %}">{{ r.get_status_display }}</span>
+          </td>
+          <td>
+            <form method="post" action="{% url 'reservations:set_status' r.pk %}" class="d-flex gap-1">
+              {% csrf_token %}
+              <button name="status" value="CONFIRMED" class="btn btn-sm btn-success">Confirmar</button>
+              <button name="status" value="CANCELLED" class="btn btn-sm btn-danger">Cancelar</button>
+              <button name="status" value="PENDING" class="btn btn-sm btn-outline-secondary">Pendiente</button>
+            </form>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="8" class="text-center text-muted">No hay reservas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

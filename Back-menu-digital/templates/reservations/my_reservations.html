@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Mis reservas{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Mis reservas</h1>
+  <a href="{% url 'reservations:create' %}" class="btn btn-dark">Nueva reserva</a>
+</div>
+
+<div class="table-responsive">
+  <table class="table align-middle bg-white">
+    <thead><tr><th>Fecha</th><th>Hora</th><th>Personas</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+      {% for r in reservations %}
+        <tr>
+          <td>{{ r.date|date:"d/m/Y" }}</td>
+          <td>{{ r.time|time:"H:i" }}</td>
+          <td>{{ r.guests }}</td>
+          <td>
+            <span class="badge {% if r.status == 'CONFIRMED' %}text-bg-success{% elif r.status == 'CANCELLED' %}text-bg-danger{% else %}text-bg-warning{% endif %}">{{ r.get_status_display }}</span>
+          </td>
+          <td>
+            {% if r.status != 'CANCELLED' %}
+              <form method="post" action="{% url 'reservations:cancel' r.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger">Cancelar</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-center text-muted">No tienes reservas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
