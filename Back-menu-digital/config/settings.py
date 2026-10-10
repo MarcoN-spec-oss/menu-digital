@@ -1,28 +1,31 @@
+import os
 from pathlib import Path
 
 import dj_database_url
 from decouple import Csv, config
 from django.core.exceptions import ImproperlyConfigured
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- Seguridad ---
-DEBUG = config("DEBUG", default=True, cast=bool)
+DEBUG = config("DEBUG", default=False, cast=bool)
 SECRET_KEY = config("SECRET_KEY", default="clave-insegura-solo-para-desarrollo")
 
 if not DEBUG and SECRET_KEY.startswith("clave-insegura"):
     raise ImproperlyConfigured("Define SECRET_KEY en las variables de entorno para producción.")
 
-ALLOWED_HOSTS = ["*"] if DEBUG else config("ALLOWED_HOSTS", default="", cast=Csv())
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
 CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
 
 if not DEBUG:
-    # El hosting termina el HTTPS y reenvía la petición con este encabezado
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-    SECURE_SSL_REDIRECT = config("SECURE_SSL_REDIRECT", default=True, cast=bool)
+    SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 3600  # súbelo (p. ej. 31536000) cuando todo esté estable
+    SECURE_HSTS_SECONDS = 3600
 
 # --- Aplicaciones ---
 INSTALLED_APPS = [
@@ -35,6 +38,7 @@ INSTALLED_APPS = [
     # Third party
     "rest_framework",
     "corsheaders",
+    "storages",
     "django_filters",
     # Apps del proyecto
     "menu",
@@ -80,7 +84,13 @@ WSGI_APPLICATION = "config.wsgi.application"
 # --- Base de datos: PostgreSQL si hay DATABASE_URL, SQLite si no ---
 DATABASE_URL = config("DATABASE_URL", default="")
 if DATABASE_URL:
-    DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)}
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
 else:
     DATABASES = {
         "default": {
@@ -103,18 +113,25 @@ TIME_ZONE = "America/Lima"
 USE_I18N = True
 USE_TZ = True
 
-# --- Archivos estáticos (WhiteNoise) y media ---
-STATIC_URL = "static/"
+# --- Archivos estáticos (WhiteNoise) ---
+STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# --- Google Cloud Storage para media files ---
+GS_BUCKET_NAME = config("GS_BUCKET_NAME", default="")
+if GS_BUCKET_NAME:
+    DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+    GS_DEFAULT_ACL = "publicRead"
+    GS_QUERYSTRING_AUTH = False
 
 # --- Autenticación ---
 LOGIN_URL = "accounts:login"
@@ -124,7 +141,7 @@ LOGOUT_REDIRECT_URL = "menu:list"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # --- CORS ---
-CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", default="http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174", cast=Csv())
+CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", default="http://localhost:5173,http://127.0.0.1:5173", cast=Csv())
 CORS_ALLOW_CREDENTIALS = True
 
 # --- Django REST Framework ---
