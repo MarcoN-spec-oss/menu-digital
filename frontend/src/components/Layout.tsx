@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../lib/api'
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useCartStore } from '../stores/cartStore';
@@ -28,7 +29,7 @@ export function Layout() {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:8000/api/auth/logout/', {
+      await fetch(`${API_BASE_URL}/auth/logout/`, {
         method: 'POST',
         credentials: 'include',
       });
