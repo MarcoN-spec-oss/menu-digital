@@ -11,7 +11,7 @@ venv/
 .gitignore
 .env
 db.sqlite3
-staticfiles/
+# staticfiles/
 media/
 .vscode/
 .idea/

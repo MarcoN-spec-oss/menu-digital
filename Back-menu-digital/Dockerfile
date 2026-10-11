@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN python manage.py collectstatic --noinput || true
+RUN SECRET_KEY=build-time-dummy-key DEBUG=False python manage.py collectstatic --noinput
 
 EXPOSE 8080
 
